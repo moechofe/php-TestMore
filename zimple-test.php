@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Simple unit tests tool inspired by Test-More from perl
+ * Simple unit tests tool inspired by Test::More from perl
  */
 
 // {{{ ok, notok, is, isnt, truly, trulynot
@@ -80,7 +80,7 @@ function trulynot( $test, $expected, $msg = 'Should be truly not equal')
  *   numeric $expected = The expected value
  *   string $msg = The test message
  */
-function greater( $test, $expected, $msg = 'Should be graater' )
+function greater( $test, $expected, $msg = 'Should be greater' )
 {
 	assert('is_string($msg)');
 	return compare( $test, '>', $expected, $msg );
