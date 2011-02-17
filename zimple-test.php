@@ -408,6 +408,27 @@ function isnotaresource( $test, $msg = 'Shouldn\'t be a resource' )
 	return compare( gettype($test), '!=', 'resource', $msg );
 }
 
+/**
+ * Test if a value is null or not
+ * Params:
+ *   mixed $test = The tested value
+ *   string $msg = The test message
+ * ----
+ * isnull( null );
+ * isnotnull( '' );
+ * ----
+ */
+function isnull( $test, $msg = 'Should be null' )
+{
+	assert('is_string($msg)');
+	return compare( $test, 'is_null', null, $msg );
+}
+function isnotnull( $test, $msg = 'Shouldn\'t be null' )
+{
+	assert('is_string($msg)');
+	return compare( $test, '!is_null', null, $msg );
+}
+
 // }}}
 // {{{ compare, diag, fail, pass, fault, result, report, plan, test
 
@@ -438,6 +459,8 @@ function compare( $test, $operator, $expected, $msg )
 	case '!in_array': $ok = !in_array($test,$expected); break;
 	case 'is_numeric': $ok = is_numeric($test); break;
 	case '!is_numeric': $ok = !is_numeric($test); break;
+	case 'is_null': $ok = is_null($test); break;
+	case '!is_null': $ok = !is_null($test); break;
 	default: assert('false and "Invalide compare operator"');
 	}
 	result( $ok ? pass($msg) : fail($msg) );
