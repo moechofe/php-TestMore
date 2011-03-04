@@ -485,7 +485,7 @@ function diag( $msg )
 {
 	static $first;
 	if( PHP_SAPI == 'cli' )
-		fwrite(STDERR, $msg.PHP_EOL);
+		fwrite(STDOUT, $msg.PHP_EOL);
 	else
 	{
 		if( ! headers_sent() ) header('Content-Type: text/html' );
@@ -610,7 +610,7 @@ function report()
 	if( fault() )
 		diag( sprintf('# Looks like %d faults is still alive.', fault()) );
 	if( result() and fail() )
-		diag( sprintf('# Looks like you fails %d tests of %d.', fail(), result()) );
+		diag( sprintf('# Looks like you failed %d tests of %d.', fail(), result()) );
 	elseif( result() and result()==plan() and !fail() and !fault() )
 		diag( '# Perfect!' );
 }
