@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Simple unit tests tool inspired by Test::More from perl
  */
@@ -197,13 +196,13 @@ function isa( $object, $class, $msg = 'Should be an instance of' )
 {
 	assert('is_object($object)');
 	assert('is_string($class) or is_object($class)');
-	return ok( is_a( $object, is_object($class)?get_class($class):$class ), $msg );
+	return compare( $object, 'is_a', $class, $msg );
 }
 function isnota( $object, $class, $msg = 'Shouldn\'t be an instance of' )
 {
 	assert('is_object($object)');
 	assert('is_string($class) or is_object($class)');
-	return notok( is_a( $object, is_object($class)?get_class($class):$class ), $msg );
+	return notok( $object, '!is_a', $class, $msg );
 }
 
 /**
@@ -259,7 +258,7 @@ function notexcept( $callback, $exception, $msg = 'Shouldn\'t throw an exception
 }
 
 // }}}
-// {{{ isaboolean, isaboolean, isaninteger, isnotaninteger, isastring, isnotastring, isanobject, isnotanobject, isanarray, isnotanarray, isaresource, isnotaresource
+// {{{ isaboolean, isnotaboolean, isaninteger, isnotaninteger, isastring, isnotastring, isanobject, isnotanobject, isanarray, isnotanarray, isaresource, isnotaresource
 
 /**
  * Test if a value is a boolean or not
@@ -430,7 +429,7 @@ function isnotnull( $test, $msg = 'Shouldn\'t be null' )
 }
 
 // }}}
-// {{{ compare, diag, fail, pass, fault, result, report, plan, test
+// {{{ compare, diag, fail, pass, fault, result, skip_ok, dont_skip_ok, report, plan, test
 
 /**
  * Test a value with a particular operator
@@ -461,6 +460,8 @@ function compare( $test, $operator, $expected, $msg )
 	case '!is_numeric': $ok = !is_numeric($test); break;
 	case 'is_null': $ok = is_null($test); break;
 	case '!is_null': $ok = !is_null($test); break;
+	case 'is_a': $ok = is_a( $test, is_object($expected)?get_class($expected):$expected ); break;
+	case '!is_a': $ok = is_a( $test, is_object($expected)?get_class($expected):$expected ); break;
 	default: assert('false and "Invalide compare operator"');
 	}
 	result( $ok ? pass($msg) : fail($msg) );
@@ -470,6 +471,10 @@ function compare( $test, $operator, $expected, $msg )
 		ob_start(); var_dump($expected); $expected = preg_replace('/\s+/',' ',ob_get_clean());
 		diag( sprintf('#  obtained: %s %s', str_repeat(' ',strlen($operator)), $test) );
 		diag( sprintf('#  expected: %s %s', $operator, $expected) );
+		if( extension_loaded('xdebug') )
+			foreach( array_reverse(xdebug_get_function_stack()) as $call )
+				if( ! empty($call['file']) and $call['file'] != __FILE__ and ! empty($call['function']) and in_array($call['function'],array('ok','notok','is','isnt','truly','trulynot','greater','notgreater','lesser','notleser','contain','notcontain','has','hasnt','isa','isnota','like','notlike','except','notexcept','isaboolean','isnotaboolean','isaninteger','isnotaninteger','isastring','isnotastring','isanobject','isnotanobject','isanarray','isnotanarray','isaresource','isnotaresource')) and ! empty($call['line']) )
+				{ diag( sprintf('#  at line: %s of file: %s', $call['line'], $call['file']) ); break; }
 	}
 	return $ok;
 }
