@@ -258,7 +258,7 @@ function notexcept( $callback, $exception, $msg = 'Shouldn\'t throw an exception
 }
 
 // }}}
-// {{{ isaboolean, isnotaboolean, isaninteger, isnotaninteger, isastring, isnotastring, isanobject, isnotanobject, isanarray, isnotanarray, isaresource, isnotaresource
+// {{{ isaboolean, isnotaboolean, isaninteger, isnotaninteger, isastring, isnotastring, isanobject, isnotanobject, isanarray, isnotanarray, isaresource, isnotaresource, isnull, isnotnull
 
 /**
  * Test if a value is a boolean or not
