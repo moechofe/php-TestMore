@@ -2,6 +2,8 @@
 /**
  * Simple unit tests tool inspired by Test::More from perl
  */
+namespace qad\test;
+use ErrorException, Exception;
 
 // {{{ ok, notok, is, isnt, truly, trulynot
 
@@ -202,7 +204,7 @@ function isnota( $object, $class, $msg = 'Shouldn\'t be an instance of' )
 {
 	assert('is_object($object)');
 	assert('is_string($class) or is_object($class)');
-	return notok( $object, '!is_a', $class, $msg );
+	return compare( $object, '!is_a', $class, $msg );
 }
 
 /**
@@ -461,16 +463,24 @@ function compare( $test, $operator, $expected, $msg )
 	case 'is_null': $ok = is_null($test); break;
 	case '!is_null': $ok = !is_null($test); break;
 	case 'is_a': $ok = is_a( $test, is_object($expected)?get_class($expected):$expected ); break;
-	case '!is_a': $ok = is_a( $test, is_object($expected)?get_class($expected):$expected ); break;
+	case '!is_a': $ok = !is_a( $test, is_object($expected)?get_class($expected):$expected ); break;
 	default: assert('false and "Invalide compare operator"');
 	}
 	result( $ok ? pass($msg) : fail($msg) );
 	if( ! $ok )
 	{
-		ob_start(); var_dump($test); $test = preg_replace('/\s+/',' ',ob_get_clean());
-		ob_start(); var_dump($expected); $expected = preg_replace('/\s+/',' ',ob_get_clean());
-		diag( sprintf('#  obtained: %s %s', str_repeat(' ',strlen($operator)), $test) );
+		$obtain = false;
+		if(is_object($test))
+			$obtain = 'object(\\'.get_class($test).')';
+		else
+		{ ob_start(); var_dump($test); $obtain = preg_replace('/\s+/',' ',ob_get_clean()); }
+		if(in_array($operator,array('is_a','!is_a')) and is_string($expected))
+			$expected = 'object(\\'.ltrim($expected,'\\').')';
+		else
+		{ ob_start(); var_dump($expected); $expected = preg_replace('/\s+/',' ',ob_get_clean()); }
+		diag( sprintf('#  obtained: %s %s', str_repeat(' ',strlen($operator)), $obtain?:$test) );
 		diag( sprintf('#  expected: %s %s', $operator, $expected) );
+		if( $test instanceof Exception ) diag( sprintf('# exception: [%s] %s in %s on line %s', $test->getCode(), $test->getMessage(), $test->getFile(), $test->getLine()) );
 		if( extension_loaded('xdebug') )
 			foreach( array_reverse(xdebug_get_function_stack()) as $call )
 				if( ! empty($call['file']) and $call['file'] != __FILE__ and ! empty($call['function']) and in_array($call['function'],array('ok','notok','is','isnt','truly','trulynot','greater','notgreater','lesser','notleser','contain','notcontain','has','hasnt','isa','isnota','like','notlike','except','notexcept','isaboolean','isnotaboolean','isaninteger','isnotaninteger','isastring','isnotastring','isanobject','isnotanobject','isanarray','isnotanarray','isaresource','isnotaresource')) and ! empty($call['line']) )
@@ -552,7 +562,7 @@ function fault( $exception = null )
 {
 	static $count;
 	if( is_null($exception) ) return $count;
-	assert('$exception instanceof Exception');
+	assert('$exception instanceof \Exception');
 	$count++;
 	if( $exception instanceof ErrorException )
 		diag( sprintf('# %s - %s: %s', get_class($exception), strtr($exception->getSeverity(),array(E_WARNING=>'Warning',E_NOTICE=>'Notice',E_USER_ERROR=>'User error',E_USER_WARNING=>'User warning',E_USER_NOTICE=>'User notice',E_STRICT=>'Strict',E_RECOVERABLE_ERROR=>'Recoverable error',E_DEPRECATED=>'Deprecated','User deprecated')), $exception->getMessage()) );
@@ -617,7 +627,7 @@ function report()
 	elseif( result() and result()==plan() and !fail() and !fault() )
 		diag( '# Perfect!' );
 }
-register_shutdown_function('report');
+register_shutdown_function('\qad\test\report');
 
 /**
  * Indiquate an additional number of planned tests
@@ -678,8 +688,8 @@ function catch_exception( $e )
  */
 function catch_fault()
 {
-	set_error_handler('catch_error');
-	set_exception_handler('catch_exception');
+	set_error_handler('\qad\test\catch_error');
+	set_exception_handler('\qad\test\catch_exception');
 }
 function uncatch_fault()
 {
@@ -705,7 +715,7 @@ function uncatch_fault()
  */
 function test()
 {
-	set_error_handler('catch_error');
+	set_error_handler('\qad\test\catch_error');
 	$tests = func_get_args();
 	foreach( $tests as $test )
 		if( is_callable($test) ) try { call_user_func($test); }
